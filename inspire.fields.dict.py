@@ -1,7 +1,9 @@
 # python
 # inspire fields dict
 # map to cerfacs
-
+#
+# project: clipc
+# author: andrej
 
 # http://csw.climate4impact.eu/geonetwork/srv/eng/catalog.search
 #
@@ -12,7 +14,9 @@ inspire_fields_dict =   {
 						#inspire   			  #nc_global
 						'title'				: 'nc fileName' # change to human readable format variable # discussed in emails.
 						'abstract'			: 'description'
-						'keyword'			:['keywords' # tuple distributed according to vocabularies 
+						'keyword'			:['keywords', # tuple distributed according to vocabularies 
+											  'project_id',
+											  'experiment_id',
 											  'standard_name' ] , # we extract this from the variable and added to the keywords, but the short name changes by user
 						'date' 				: 'revision_date' # day-month-year preffered
 						'organisationName'	: 'institution'
