@@ -11,7 +11,7 @@ def return_ncdump_variables(ncs):
 	keywords = []
 	summary = []
 	institution = []
-	in_var_institution = []
+	lineage_variables = []
 	publication_date = time.isoformat()
 	contact_email_1 = []
 	revision_date = ""
@@ -28,7 +28,7 @@ def return_ncdump_variables(ncs):
 	#in_var_key_order = []
 
 	for i in ncs:
-
+		print i
 		nc_fid = netCDF4.Dataset( i,'r')
 
 		k = 'KEYWORD'
@@ -37,15 +37,18 @@ def return_ncdump_variables(ncs):
 			if 'description' in j:
 				if not des in description:
 					description.append(des)
+			if 'summary' in j: 
+				if not des in description:
+					description.append(des)		
 			if 'keywords' in j:
 				kwds = des.split(',')
 				k = kwds[2]
 				for kwd in kwds:
 					if not kwd in keywords:
 						keywords.append(kwd)
-			if 'summary' in j:
-				if not des in summary:
-					summary.append(des)
+			#if 'summary' in j:
+			#	if not des in summary:
+			#		summary.append(des)
 			if 'driving_experiment' == j:
 				#for item in des:
 				print summary
@@ -57,13 +60,19 @@ def return_ncdump_variables(ncs):
 			if 'institution' in j:
 				if not des in institution:
 					institution.append(des)	
-			#if 'in_var_institution' in j:
+			#if 'lineage_variables' in j:
 			if 'in_var_' in j:
-				if not des in in_var_institution:
+				if not des in lineage_variables:
 					key = j.replace('in_var_','')
-					#in_var_institution.append(des)
+					#lineage_variables.append(des)
 					#in_var_key_order.append(key)
 					in_var_ordereddict[key] = des	
+			if 'model' == j:
+				if not des in lineage_variables:
+					key = j #.replace('model','')
+					#lineage_variables.append(des)
+					#in_var_key_order.append(key)
+					in_var_ordereddict[key] = des			
 			if 'project_id' in j:
 				if not des in keywords:
 						keywords.append(des)	
@@ -84,9 +93,9 @@ def return_ncdump_variables(ncs):
 					coverage_start = "2006"
 					coverage_end   = "2100"	
 	
-			if 'coverage_start' in j:
+			if 'time_coverage_start' in j:
 				coverage_start = des
-			if 'coverage_end' in j:
+			if 'time_coverage_end' in j:
 				coverage_end = des		
 			if 'geospatial_lat_min' in j:
 				geospatial_lat_min= des
@@ -104,30 +113,46 @@ def return_ncdump_variables(ncs):
 		layer = nc_fid.variables[k]	
 	except:
 		for k ,v in nc_fid.variables.items():
-			if 'coordinates' in v.ncattrs():
+			if 'coordinates' in v.ncattrs(): # cerfacs data
 				layer =  nc_fid.variables[k]
 				break
+			if 'grid_mapping' in v.ncattrs(): # luis data
+				layer =  nc_fid.variables[k]
+				break	
 	
+	#print k
+	#print layer
+
 	# add variable discriptions as keywords	
 	try:
-		keywords.append(k)
-		keywords.append(layer.standard_name)
-		keywords.append(layer.long_name)
-		keywords.append(layer.units)				
+		if k not in keywords: keywords.append(k)
+
+		if layer.standard_name is not '':
+			keywords.append(layer.standard_name)
+		#keywords.append(layer.long_name)
+		#keywords.append(layer.units)				
 	except Exception, e:
-		raise e				
+		print "std name not found: ",k 
+		#raise e				
+
+	# clean keywords.
+	keywords = [tp.strip(' ') for tp in keywords]
+	if () in keywords: keywords.remove(())
+	if ' ' in keywords: keywords.remove(' ')
+	if '' in keywords: keywords.remove('')
+	keywords = filter(None,keywords)
 
 	#print keywords
 
-	in_var_institution = ""
+	lineage_variables = ""
 	for k,v in in_var_ordereddict.items():
-			in_var_institution = in_var_institution + k +": " + v+ ', \n'
+			lineage_variables = lineage_variables + k +": " + v+ '\t'
 
 	return ( description \
 		, keywords \
 		, summary \
 		, institution\
-		, in_var_institution\
+		, lineage_variables\
 		, contact_email_1\
 		, revision_date\
 		, coverage_start\

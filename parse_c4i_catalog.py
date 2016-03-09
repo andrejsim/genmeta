@@ -21,8 +21,6 @@ def readThreddsCatalog(url,project,data):
 
 	listLinks = tree.getiterator()
 
-
-
 	for u in listLinks:
 		if 'catalogRef' in u.tag:
 			nextlink = u.get('ID')+'/catalog.xml'
@@ -99,13 +97,46 @@ def readcatalogB(catalog, url):
 	return (layers , newLinks)
 
 
+from collections import OrderedDict
+
+def readcatalogC(catalog, url,base):
+	req = urllib2.urlopen(catalog+url)
+	catXml = req.read()
+
+	# xml formater in lxml
+	tree = ET.fromstring(catXml)
+	#
+	listLinks = tree.getiterator()
+
+	#print "\nlinks"
+	layers    = []
+	links = []
+	#xpath //a all elements with a ... thus all links in html
+	dict = OrderedDict()
+	for u in listLinks:
+		for k in u.keys():
+			if "urlPath" in k:
+				l = u.get(k).split('/')[3]
+				layers.append(l)
+			if "ID" in k:
+				link = u.get(k)
+				newlink = base + link #+ "/catalog.xml"
+
+				#print newlink
+				links.append(newlink)	
+				
+	for i in len(layers): 			
+		dicto[layers[i]].append(links)
+
+	return dicto 
+
 #mid level parse
 def readcatalog2B(catalog,url):
 	req = urllib2.urlopen(url)
 	catXml = req.read()
 
 	# printxml...
-	print catXml
+	#print catXml
 
 	# xml formater in lxml
 	tree = ET.fromstring(catXml)
@@ -172,7 +203,7 @@ def readcatalog3(url,opendap,wmsStart,wmsEnd):
 		if "dataset" in u.tag:
 			ilink = u.get("ID")
 			if ".nc" in ilink:
-				wmsAnswer.append( wmsStart+'source='+opendap+ilink+wmsEnd )	
+				wmsAnswer.append( wmsStart+opendap+ilink+wmsEnd )	
 				ncAnswer.append( opendap+ilink )	
 
 	return (wmsAnswer , ncAnswer)	
